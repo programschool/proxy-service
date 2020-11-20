@@ -1,4 +1,4 @@
-package middleware
+package proxy_middleware
 
 import (
 	"fmt"
@@ -190,6 +190,10 @@ func (b *roundRobinBalancer) Next(c echo.Context) *ProxyTarget {
 //
 // Proxy middleware forwards the request to upstream server using a configured load balancing technique.
 func Proxy(balancer ProxyBalancer) echo.MiddlewareFunc {
+	if GetTarget == nil {
+		panic("GetTarget 必须被实现！")
+	}
+
 	c := DefaultProxyConfig
 	c.Balancer = balancer
 	return ProxyWithConfig(c)
@@ -221,11 +225,10 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 
 			req := c.Request()
 			res := c.Response()
-
 			// 可以动态加载 target
-			fmt.Println(req.Host)
 			//url, err := url.Parse("https://192.168.20.101")
-			url, err := url.Parse("http://192.168.20.102:8080")
+
+			url, err := url.Parse(GetTarget(c))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -273,3 +276,8 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 		}
 	}
 }
+
+// 必须实现此接口
+type targetType func(c echo.Context) string
+
+var GetTarget targetType

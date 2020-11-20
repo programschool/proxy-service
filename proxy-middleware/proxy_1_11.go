@@ -1,14 +1,12 @@
 // +build go1.11
-
-package middleware
+package proxy_middleware
 
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/labstack/echo"
 	"net/http"
 	"net/http/httputil"
-
-	"github.com/labstack/echo"
 )
 
 func proxyHTTP(tgt *ProxyTarget, c echo.Context, config ProxyConfig) http.Handler {

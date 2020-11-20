@@ -1,4 +1,4 @@
-package middleware
+package proxy_middleware
 
 import (
 	"regexp"
