@@ -1,20 +1,14 @@
 package dockertools
 
 import (
-	//"bufio"
 	"context"
 	"fmt"
-	//"io"
-	//"os"
-	"time"
-	//"reflect"
-	//"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/strslice"
-	//"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
@@ -26,7 +20,7 @@ type Dock struct {
 func (dock Dock) New(host string) Dock {
 	var httpClient *http.Client
 	host = fmt.Sprintf("tcp://%s", host)
-	var clientVersion = "v1.13.1"
+	var clientVersion = "v1.40"
 	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
 
 	cli, err := client.NewClient(host, clientVersion, httpClient, defaultHeaders) // engine 1.13.1
@@ -42,7 +36,7 @@ func (dock Dock) New(host string) Dock {
 
 func (dock Dock) Create(image string) string {
 	hostConfig := new(container.HostConfig)
-	hostConfig.Resources.Memory = 150 * 1024 * 1024
+	hostConfig.Resources.Memory = 150 << 20
 	hostConfig.Resources.CPUShares = 256
 	// hostConfig.Resources.CPUPeriod = 100000
 	// hostConfig.Resources.CPUQuota = 50000
