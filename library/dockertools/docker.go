@@ -3,7 +3,6 @@ package dockertools
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -18,13 +17,10 @@ type Dock struct {
 }
 
 func (dock Dock) New(host string) Dock {
-	var httpClient *http.Client
-	host = fmt.Sprintf("tcp://%s", host)
-	var clientVersion = "v1.40"
-	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
-
-	cli, err := client.NewClient(host, clientVersion, httpClient, defaultHeaders) // engine 1.13.1
 	ctx := context.Background()
+	host = fmt.Sprintf("tcp://%s", host)
+	opt := client.WithHost(host)
+	cli, err := client.NewClientWithOpts(opt, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
 	}
