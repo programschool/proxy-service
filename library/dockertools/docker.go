@@ -30,10 +30,13 @@ func (dock Dock) New(host string) Dock {
 	return dock
 }
 
-func (dock Dock) Create(image string) string {
+func (dock Dock) Create(image string, memory int64, size string) string {
 	hostConfig := new(container.HostConfig)
-	hostConfig.Resources.Memory = 150 << 20
+	hostConfig.Resources.Memory = memory << 20 // 限制内存
 	hostConfig.Resources.CPUShares = 256
+	//hostConfig.StorageOpt = map[string]string{
+	//	"size": size, // 限制磁盘 单位 M G
+	//}
 	// hostConfig.Resources.CPUPeriod = 100000
 	// hostConfig.Resources.CPUQuota = 50000
 	resp, err := dock.cli.ContainerCreate(
@@ -56,12 +59,11 @@ func (dock Dock) Create(image string) string {
 	return resp.ID
 }
 
-func (dock Dock) CreateAndStart(image string) string {
-	containerID := dock.Create(image)
+func (dock Dock) CreateAndStart(image string, memory int64, size string) string {
+	containerID := dock.Create(image, memory, size)
 	dock.Start(containerID)
 
 	return containerID
-
 }
 
 func (dock Dock) Start(containerID string) bool {

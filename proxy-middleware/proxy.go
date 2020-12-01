@@ -2,14 +2,12 @@ package proxy_middleware
 
 import (
 	"fmt"
-	"github.com/labstack/echo/middleware"
 	"io"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -23,7 +21,7 @@ type (
 	// ProxyConfig defines the config for Proxy middleware.
 	ProxyConfig struct {
 		// Skipper defines a function to skip middleware.
-		Skipper middleware.Skipper
+		Skipper Skipper
 
 		// Balancer defines a load balancing technique.
 		// Required.
@@ -45,6 +43,9 @@ type (
 		// To customize the transport to remote.
 		// Examples: If custom TLS certificates are required.
 		Transport http.RoundTripper
+
+		// ModifyResponse defines function to modify response from ProxyTarget.
+		ModifyResponse func(*http.Response) error
 
 		rewriteRegex map[*regexp.Regexp]string
 	}
@@ -84,7 +85,7 @@ type (
 var (
 	// DefaultProxyConfig is the default Proxy middleware config.
 	DefaultProxyConfig = ProxyConfig{
-		Skipper:    middleware.DefaultSkipper,
+		Skipper:    DefaultSkipper,
 		ContextKey: "target",
 	}
 )
@@ -135,10 +136,9 @@ func NewRandomBalancer(targets []*ProxyTarget) ProxyBalancer {
 }
 
 // NewRoundRobinBalancer returns a round-robin proxy balancer.
-//func NewRoundRobinBalancer(targets []*ProxyTarget) ProxyBalancer {
 func NewRoundRobinBalancer() ProxyBalancer {
 	b := &roundRobinBalancer{commonBalancer: new(commonBalancer)}
-	// b.targets = targets
+	//b.targets = targets
 	return b
 }
 
@@ -209,13 +209,8 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 	if config.Balancer == nil {
 		panic("echo: proxy middleware requires balancer")
 	}
-	config.rewriteRegex = map[*regexp.Regexp]string{}
 
-	// Initialize
-	for k, v := range config.Rewrite {
-		k = strings.Replace(k, "*", "(\\S*)", -1)
-		config.rewriteRegex[regexp.MustCompile(k)] = v
-	}
+	config.rewriteRegex = rewriteRulesRegex(config.Rewrite)
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
@@ -225,6 +220,7 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 
 			req := c.Request()
 			res := c.Response()
+
 			// 可以动态加载 target
 			//url, err := url.Parse("https://192.168.20.101")
 
@@ -239,13 +235,8 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 			tgt := config.Balancer.Next(c)
 			c.Set(config.ContextKey, tgt)
 
-			// Rewrite
-			for k, v := range config.rewriteRegex {
-				replacer := captureTokens(k, echo.GetPath(req))
-				if replacer != nil {
-					req.URL.Path = replacer.Replace(v)
-				}
-			}
+			// Set rewrite path and raw path
+			rewritePath(config.rewriteRegex, req)
 
 			// Fix header
 			// Basically it's not good practice to unconditionally pass incoming x-real-ip header to upstream.
@@ -263,7 +254,10 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 			// Proxy
 			switch {
 			case c.IsWebSocket():
-				proxyRaw(tgt, c).ServeHTTP(res, req)
+				// 使用 proxyRaw 进行双层代理时会报错：
+				// "file":"echo.go","line":"381","message":"http: connection has been hijacked"
+				// proxyRaw(tgt, c).ServeHTTP(res, req)
+				proxyHTTP(tgt, c, config).ServeHTTP(res, req)
 			case req.Header.Get(echo.HeaderAccept) == "text/event-stream":
 			default:
 				proxyHTTP(tgt, c, config).ServeHTTP(res, req)

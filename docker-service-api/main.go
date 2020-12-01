@@ -37,7 +37,8 @@ func handle(c echo.Context) error {
 	w.WriteHeader(http.StatusCreated)
 
 	// service is container node ip addres
-	dockerHost := fmt.Sprintf("%s:%s", post["server"].(string), conf.DockerPort)
+	server := post["server"].(string)
+	dockerHost := fmt.Sprintf("%s:%s", server, conf.DockerPort)
 
 	dock := dockertools.Dock{}.New(dockerHost)
 	defer dock.Close()
@@ -46,7 +47,11 @@ func handle(c echo.Context) error {
 
 	switch post["action"] {
 	case "create":
-		dockerID := dock.CreateAndStart(post["image"].(string))
+		image := fmt.Sprintf("%s/%s", post["registry-host"], post["image"].(string))
+		dockerID := dock.CreateAndStart(
+			image,
+			int64(post["memory"].(float64)),
+			post["size"].(string))
 		// dock.ExecCommand(dockerID, []string{"bash", "/etc/rc.local"})
 		dockerIP := dock.IpAddress(dockerID)
 		// fmt.Println(dockerID)
@@ -55,7 +60,11 @@ func handle(c echo.Context) error {
 		data = map[string]interface{}{
 			"docker_id": dockerID,
 			"docker_ip": dockerIP,
+			"server":    server,
 		}
+		domain := post["domain"].(string)
+		saveToRedis(domain, "docker_ip", dockerIP)
+		saveToRedis(domain, "docker_server", server)
 	case "start":
 		dockerID := post["docker-id"].(string)
 		isRun := dock.IsRunning(dockerID)
@@ -145,5 +154,7 @@ func handle(c echo.Context) error {
 }
 
 func saveToRedis(domain string, key string, val string) {
-
+	fmt.Println(domain)
+	fmt.Println(key)
+	fmt.Println(val)
 }

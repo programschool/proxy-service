@@ -13,7 +13,7 @@ func main() {
 	proxy_middleware.GetTarget = func(c echo.Context) string {
 		req := c.Request()
 		//res := c.Response()
-		fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
+		//fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
 
 		// 查询子域名获得ip地址
 		req.Header.Add("container", "http://172.17.0.2:8080")

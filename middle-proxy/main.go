@@ -12,8 +12,8 @@ func main() {
 
 	proxy_middleware.GetTarget = func(c echo.Context) string {
 		req := c.Request()
-		//res := c.Response()
-		fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
+		// res := c.Response()
+		//fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
 		fmt.Println(req.Header.Get("container"))
 		return req.Header.Get("container")
 	}

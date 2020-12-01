@@ -19,8 +19,12 @@ func proxyHTTP(tgt *ProxyTarget, c echo.Context, config ProxyConfig) http.Handle
 		c.Set("_error", echo.NewHTTPError(http.StatusBadGateway, fmt.Sprintf("remote %s unreachable, could not forward: %v", desc, err)))
 	}
 	//proxy.Transport = config.Transport
+	// 跳过ssl验证
 	proxy.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
+
+	proxy.ModifyResponse = config.ModifyResponse
+
 	return proxy
 }
