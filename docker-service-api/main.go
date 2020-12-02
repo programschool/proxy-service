@@ -3,8 +3,10 @@ package main
 import (
 	"../config"
 	"../library/dockertools"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"net/http"
 	"strings"
@@ -154,7 +156,23 @@ func handle(c echo.Context) error {
 }
 
 func saveToRedis(domain string, key string, val string) {
-	fmt.Println(domain)
-	fmt.Println(key)
-	fmt.Println(val)
+	var ctx = context.Background()
+
+	//fmt.Println(domain)
+	//fmt.Println(key)
+	//fmt.Println(val)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "192.168.10.102:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	err := rdb.HMSet(ctx, domain, key, val)
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		defer rdb.Close()
+	}
 }

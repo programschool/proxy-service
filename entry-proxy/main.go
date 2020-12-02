@@ -3,7 +3,9 @@ package main
 import (
 	"../config"
 	"../proxy-middleware"
+	"context"
 	"fmt"
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 )
 
@@ -12,12 +14,14 @@ func main() {
 
 	proxy_middleware.GetTarget = func(c echo.Context) string {
 		req := c.Request()
-		//res := c.Response()
-		//fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
+		info := getFromRedis(req.Host)
 
 		// 查询子域名获得ip地址
-		req.Header.Add("container", "http://172.17.0.2:8080")
-		return "https://192.168.10.104"
+
+		fmt.Println(fmt.Sprintf("http://%s:8080", info.docker_ip))
+
+		req.Header.Add("container", fmt.Sprintf("http://%s:8080", info.docker_ip))
+		return fmt.Sprintf("https://%s", info.docker_server)
 	}
 
 	e.Use(proxy_middleware.Proxy(proxy_middleware.NewRoundRobinBalancer()))
@@ -29,4 +33,26 @@ func main() {
 
 func p90(e *echo.Echo, conf config.Conf) {
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, "90"), conf.CertFile, conf.KeyFile))
+}
+
+type ContainerInfo struct {
+	docker_ip     string
+	docker_server string
+}
+
+func getFromRedis(domain string) ContainerInfo {
+	var ctx = context.Background()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "192.168.10.102:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	var info ContainerInfo
+	info.docker_ip = rdb.HGet(ctx, domain, "docker_ip").Val()
+	info.docker_server = rdb.HGet(ctx, domain, "docker_server").Val()
+
+	return info
+	// defer rdb.Close()
 }
