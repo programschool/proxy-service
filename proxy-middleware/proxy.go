@@ -254,9 +254,9 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 			// Proxy
 			switch {
 			case c.IsWebSocket():
+				//proxyRaw(tgt, c).ServeHTTP(res, req)
 				// 使用 proxyRaw 进行双层代理时会报错：
 				// "file":"echo.go","line":"381","message":"http: connection has been hijacked"
-				// proxyRaw(tgt, c).ServeHTTP(res, req)
 				proxyHTTP(tgt, c, config).ServeHTTP(res, req)
 			case req.Header.Get(echo.HeaderAccept) == "text/event-stream":
 			default:
