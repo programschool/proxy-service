@@ -2,7 +2,11 @@ package dockertools
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -92,10 +96,13 @@ func (dock Dock) Stop(containerID string) bool {
 	return true
 }
 
-func (dock Dock) Remove(containerID string) bool {
+func (dock Dock) ContainerRemove(containerID string) error {
 	dock.Stop(containerID)
-	dock.cli.ContainerRemove(dock.ctx, containerID, types.ContainerRemoveOptions{})
-	return true
+	return dock.cli.ContainerRemove(dock.ctx, containerID, types.ContainerRemoveOptions{})
+}
+
+func (dock Dock) ImageRemove(imageID string) ([]types.ImageDeleteResponseItem, error) {
+	return dock.cli.ImageRemove(dock.ctx, imageID, types.ImageRemoveOptions{})
 }
 
 func (dock Dock) Inspect(containerID string) types.ContainerJSON {
@@ -160,6 +167,35 @@ func (dock Dock) IsRunning(containerID string) bool {
 		return true
 	}
 	return false
+}
+
+func (dock Dock) Commit(containerID string, imageName string) (types.IDResponse, error) {
+	commitResp, err := dock.cli.ContainerCommit(dock.ctx, containerID, types.ContainerCommitOptions{Reference: imageName})
+	return commitResp, err
+}
+
+func (dock Dock) Push(imageName string) error {
+	auth := types.AuthConfig{
+		Username: "foxsir",
+		Password: "123456",
+	}
+	authBytes, _ := json.Marshal(auth)
+	authBase64 := base64.URLEncoding.EncodeToString(authBytes)
+	fmt.Println(authBase64)
+
+	fmt.Println(fmt.Sprintf("%s:latest", imageName))
+
+	pusher, err := dock.cli.ImagePush(dock.ctx, fmt.Sprintf("%s:latest", imageName), types.ImagePushOptions{
+		All:           false,
+		RegistryAuth:  authBase64,
+		PrivilegeFunc: nil,
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer pusher.Close()
+	io.Copy(os.Stdout, pusher)
+	return err
 }
 
 func (dock Dock) Close() bool {

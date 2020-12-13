@@ -50,71 +50,91 @@ func handle(c echo.Context) error {
 	switch post["action"] {
 	case "create":
 		image := fmt.Sprintf("%s/%s", post["registry-host"], post["image"].(string))
-		dockerID := dock.CreateAndStart(
+		containerID := dock.CreateAndStart(
 			image,
 			int64(post["memory"].(float64)),
 			post["size"].(string))
-		// dock.ExecCommand(dockerID, []string{"bash", "/etc/rc.local"})
-		dockerIP := dock.IpAddress(dockerID)
-		// fmt.Println(dockerID)
+		// dock.ExecCommand(containerID, []string{"bash", "/etc/rc.local"})
+		dockerIP := dock.IpAddress(containerID)
+		// fmt.Println(containerID)
 		// fmt.Println(dockerIP)
 		// 获取返回结果
 		data = map[string]interface{}{
-			"docker_id": dockerID,
-			"docker_ip": dockerIP,
-			"server":    server,
+			"container_id": containerID,
+			"container_ip": dockerIP,
+			"server":       server,
 		}
 		domain := post["domain"].(string)
-		saveToRedis(domain, "docker_ip", dockerIP)
+		saveToRedis(domain, "container_ip", dockerIP)
 		saveToRedis(domain, "docker_server", server)
 	case "start":
-		dockerID := post["docker-id"].(string)
-		isRun := dock.IsRunning(dockerID)
+		containerID := post["container-id"].(string)
+		isRun := dock.IsRunning(containerID)
 		flag := 0
 		if !isRun {
-			dock.Start(dockerID)
+			dock.Start(containerID)
 			userDomain := post["domain"].(string)
-			dockerIP := dock.IpAddress(dockerID)
-			saveToRedis(userDomain, "docker_ip", dockerIP)
+			dockerIP := dock.IpAddress(containerID)
+			saveToRedis(userDomain, "container_ip", dockerIP)
 			server := post["server"].(string)
 			saveToRedis(userDomain, "docker_server", server)
-			saveToRedis(userDomain, "docker_id", dockerID)
+			saveToRedis(userDomain, "container_id", containerID)
 			flag = 1
 		}
-		//fmt.Printf("start docker, id %s, isrun %t\n", dockerID, isRun)
-		// dock.ExecCommand(dockerID, []string{"bash", "/etc/rc.local"})
+		//fmt.Printf("start docker, id %s, isrun %t\n", containerID, isRun)
+		// dock.ExecCommand(containerID, []string{"bash", "/etc/rc.local"})
 		data = map[string]interface{}{
 			"error": 0,
 			"flag":  flag,
 		}
 	case "reStart":
-		dockerID := post["docker-id"].(string)
-		dock.ReStart(dockerID)
+		containerID := post["container-id"].(string)
+		dock.ReStart(containerID)
 		userDomain := post["domain"].(string)
-		dockerIP := dock.IpAddress(dockerID)
-		saveToRedis(userDomain, "docker_ip", dockerIP)
+		dockerIP := dock.IpAddress(containerID)
+		saveToRedis(userDomain, "container_ip", dockerIP)
 		server := post["server"].(string)
 		saveToRedis(userDomain, "docker_server", server)
-		saveToRedis(userDomain, "docker_id", dockerID)
-		// dock.ExecCommand(dockerID, []string{"bash", "/etc/rc.local"})
+		saveToRedis(userDomain, "container_id", containerID)
+		// dock.ExecCommand(containerID, []string{"bash", "/etc/rc.local"})
 		data = map[string]interface{}{
 			"error": 0,
 		}
 	case "stop":
-		dockerID := post["docker-id"].(string)
-		dock.Stop(dockerID)
+		containerID := post["container-id"].(string)
+		dock.Stop(containerID)
 		data = map[string]interface{}{
 			"error": 0,
 		}
 	case "remove":
-		dockerID := post["docker-id"].(string)
-		dock.Stop(dockerID)
-		dock.Remove(dockerID)
+		containerID := post["container-id"].(string)
+		dock.Stop(containerID)
+		err := dock.ContainerRemove(containerID)
+		if err != nil {
+			c.Logger().Errorf("containerID %s: 删除失败", containerID)
+		}
+		data = map[string]interface{}{
+			"error": 0,
+		}
+	case "save":
+		containerID := post["container-id"].(string)
+		imageName := post["image"].(string)
+		dock.Stop(containerID)
+		img, _ := dock.Commit(containerID, imageName)
+		errPush := dock.Push(imageName)
+		if errPush != nil {
+			c.Logger().Errorf("%s: PUSH 失败", imageName)
+		}
+		errCR := dock.ContainerRemove(containerID)
+		if errCR != nil {
+			c.Logger().Errorf("containerID %s: 删除失败", containerID)
+		}
+		dock.ImageRemove(img.ID)
 		data = map[string]interface{}{
 			"error": 0,
 		}
 	case "bash":
-		dockerID := post["docker-id"].(string)
+		containerID := post["container-id"].(string)
 		command := strings.Split(post["command"].(string), " ")
 		userDomain := post["domain"].(string)
 		bash := []string{"bash"}
@@ -124,7 +144,7 @@ func handle(c echo.Context) error {
 				saveToRedis(userDomain, "auth", strings.TrimSpace(command[1]))
 			}
 		}
-		inspect, err := dock.ExecCommand(dockerID, append(bash, command...))
+		inspect, err := dock.ExecCommand(containerID, append(bash, command...))
 		if err == nil {
 			data = map[string]interface{}{
 				"error":        0,

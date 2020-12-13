@@ -18,9 +18,9 @@ func main() {
 
 		// 查询子域名获得ip地址
 
-		fmt.Println(fmt.Sprintf("http://%s:8080", info.docker_ip))
+		fmt.Println(fmt.Sprintf("http://%s:8080", info.container_ip))
 
-		req.Header.Add("container", fmt.Sprintf("http://%s:8080", info.docker_ip))
+		req.Header.Add("container", fmt.Sprintf("http://%s:8080", info.container_ip))
 		return fmt.Sprintf("https://%s", info.docker_server)
 	}
 
@@ -36,7 +36,7 @@ func p90(e *echo.Echo, conf config.Conf) {
 }
 
 type ContainerInfo struct {
-	docker_ip     string
+	container_ip  string
 	docker_server string
 }
 
@@ -50,7 +50,7 @@ func getFromRedis(domain string) ContainerInfo {
 	})
 
 	var info ContainerInfo
-	info.docker_ip = rdb.HGet(ctx, domain, "docker_ip").Val()
+	info.container_ip = rdb.HGet(ctx, domain, "container_ip").Val()
 	info.docker_server = rdb.HGet(ctx, domain, "docker_server").Val()
 
 	return info
