@@ -49,7 +49,6 @@ func (dock Dock) Create(image string, memory int64, size string) string {
 			Image:        image,
 			Tty:          true,
 			User:         "root",
-			Cmd:          strslice.StrSlice([]string{"/bin/bash"}),
 			AttachStdin:  true,
 			AttachStdout: true,
 			AttachStderr: true,

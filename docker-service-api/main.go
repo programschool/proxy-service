@@ -20,6 +20,7 @@ func main() {
 	conf = config.Load()
 	e.POST("/", handle)
 	// Start server
+	fmt.Println("Docker Service API")
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	e.Logger.Fatal(e.StartTLS(address, conf.CertFile, conf.KeyFile))
 }

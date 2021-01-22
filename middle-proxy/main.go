@@ -14,7 +14,7 @@ func main() {
 		req := c.Request()
 		// res := c.Response()
 		//fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
-		fmt.Println(req.Header.Get("container"))
+		//fmt.Println(req.Header.Get("container"))
 		return req.Header.Get("container")
 	}
 
@@ -22,6 +22,7 @@ func main() {
 
 	conf := config.Load()
 	// go p90(e, conf)
+	fmt.Println("Middle Proxy For Container Node")
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
 }
 

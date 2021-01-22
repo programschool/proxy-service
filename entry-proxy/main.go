@@ -18,9 +18,9 @@ func main() {
 
 		// 查询子域名获得ip地址
 
-		fmt.Println(fmt.Sprintf("http://%s:8080", info.container_ip))
+		fmt.Println(fmt.Sprintf("http://%s:2090", info.container_ip))
 
-		req.Header.Add("container", fmt.Sprintf("http://%s:8080", info.container_ip))
+		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.container_ip))
 		return fmt.Sprintf("https://%s", info.docker_server)
 	}
 
@@ -28,6 +28,7 @@ func main() {
 
 	conf := config.Load()
 	// go p90(e, conf)
+	fmt.Println("Entry Proxy For Node Router")
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
 }
 
