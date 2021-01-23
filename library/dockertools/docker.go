@@ -36,6 +36,12 @@ func (dock Dock) New(host string) Dock {
 
 func (dock Dock) Create(image string, memory int64, size string) string {
 	// hostConfig docs https://docs.docker.com/engine/api/v1.24/
+	reader, err := dock.cli.ImagePull(dock.ctx, image, types.ImagePullOptions{})
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(os.Stdout, reader)
+
 	hostConfig := new(container.HostConfig)
 	hostConfig.Resources.Memory = memory << 20 // 限制内存
 	hostConfig.Resources.CPUShares = 256

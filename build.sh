@@ -5,16 +5,23 @@ export GOARCH=amd64
 
 cd entry-proxy
 go fmt main.go
-go build -o ../../../node-router main.go
+go build main.go
+scp main root@192.168.10.105:/home/services/entry-proxy
+rm main
 cd ..
-
 
 cd middle-proxy
 go fmt main.go
-go build -o ../../../container-node main.go
+go build main.go
+scp main root@192.168.10.104:/home/services/entry-proxy
+rm main
 cd ..
 
-cd docker-service-api
+cd docker-service
 go fmt main.go
-go build  -o ../../ main.go
+go build main.go
+scp main root@192.168.10.103:/home/services/docker-service
+rm main
 cd ..
+
+# 123456
