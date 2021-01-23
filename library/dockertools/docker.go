@@ -35,12 +35,13 @@ func (dock Dock) New(host string) Dock {
 }
 
 func (dock Dock) Create(image string, memory int64, size string) string {
+	// hostConfig docs https://docs.docker.com/engine/api/v1.24/
 	hostConfig := new(container.HostConfig)
 	hostConfig.Resources.Memory = memory << 20 // 限制内存
 	hostConfig.Resources.CPUShares = 256
-	//hostConfig.StorageOpt = map[string]string{
-	//	"size": size, // 限制磁盘 单位 M G
-	//}
+	hostConfig.StorageOpt = map[string]string{
+		"size": size, // 限制磁盘 单位 M、G
+	}
 	// hostConfig.Resources.CPUPeriod = 100000
 	// hostConfig.Resources.CPUQuota = 50000
 	resp, err := dock.cli.ContainerCreate(

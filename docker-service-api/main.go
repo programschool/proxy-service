@@ -14,6 +14,12 @@ import (
 
 var conf config.Conf
 
+var rdb = redis.NewClient(&redis.Options{
+	Addr:     conf.RedisServer,
+	Password: "", // no password set
+	DB:       0,  // use default DB
+})
+
 func main() {
 	// Echo instance
 	e := echo.New()
@@ -182,12 +188,6 @@ func saveToRedis(domain string, key string, val string) {
 	//fmt.Println(domain)
 	//fmt.Println(key)
 	//fmt.Println(val)
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "192.168.10.102:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
 
 	err := rdb.HMSet(ctx, domain, key, val)
 

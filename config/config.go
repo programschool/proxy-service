@@ -8,12 +8,13 @@ import (
 )
 
 type Conf struct {
-	Host       string
-	Port       string
-	DockerPort string
-	CertFile   string
-	KeyFile    string
-	Api        string
+	Host        string
+	Port        string
+	DockerPort  string
+	CertFile    string
+	KeyFile     string
+	Api         string
+	RedisServer string
 }
 
 func Load() Conf {

@@ -4,5 +4,6 @@
   "dockerPort":"2376",
   "certFile": "../ssl/boxlayer.com/fullchain.pem",
   "keyFile": "../ssl/boxlayer.com/privkey.pem",
-  "api": "http://registry.loc:9090"
+  "api": "http://registry.loc:9090",
+  "redisServer": "192.168.10.102:6379"
 }
