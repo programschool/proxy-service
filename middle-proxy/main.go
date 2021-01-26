@@ -14,7 +14,7 @@ func main() {
 		req := c.Request()
 		// res := c.Response()
 		//fmt.Println(fmt.Sprintf("Proxy: %s", req.Host))
-		//fmt.Println(req.Header.Get("container"))
+		fmt.Println(req.Header.Get("container"))
 		return req.Header.Get("container")
 	}
 

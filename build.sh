@@ -13,7 +13,7 @@ cd ..
 cd middle-proxy
 go fmt main.go
 go build main.go
-scp main root@192.168.10.104:/home/services/entry-proxy
+scp main root@192.168.10.104:/home/services/middle-proxy
 rm main
 cd ..
 

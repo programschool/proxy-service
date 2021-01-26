@@ -14,12 +14,6 @@ import (
 
 var conf config.Conf
 
-var rdb = redis.NewClient(&redis.Options{
-	Addr:     conf.RedisServer,
-	Password: "", // no password set
-	DB:       0,  // use default DB
-})
-
 func main() {
 	// Echo instance
 	e := echo.New()
@@ -128,7 +122,7 @@ func handle(c echo.Context) error {
 		imageName := post["image"].(string)
 		dock.Stop(containerID)
 		img, _ := dock.Commit(containerID, imageName)
-		errPush := dock.Push(imageName)
+		errPush := dock.Push(imageName, post["username"].(string), post["password"].(string))
 		if errPush != nil {
 			c.Logger().Errorf("%s: PUSH 失败", imageName)
 		}
@@ -184,6 +178,12 @@ func handle(c echo.Context) error {
 
 func saveToRedis(domain string, key string, val string) {
 	var ctx = context.Background()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     conf.RedisServer,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
 	//fmt.Println(domain)
 	//fmt.Println(key)

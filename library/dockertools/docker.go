@@ -36,7 +36,17 @@ func (dock Dock) New(host string) Dock {
 
 func (dock Dock) Create(image string, memory int64, size string) string {
 	// hostConfig docs https://docs.docker.com/engine/api/v1.24/
-	reader, err := dock.cli.ImagePull(dock.ctx, image, types.ImagePullOptions{})
+	authConfig := types.AuthConfig{
+		Username: "image",
+		Password: "Z29kYWRkeQ==",
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		panic(err)
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+
+	reader, err := dock.cli.ImagePull(dock.ctx, image, types.ImagePullOptions{RegistryAuth: authStr})
 	if err != nil {
 		panic(err)
 	}
@@ -180,18 +190,15 @@ func (dock Dock) Commit(containerID string, imageName string) (types.IDResponse,
 	return commitResp, err
 }
 
-func (dock Dock) Push(imageName string) error {
+func (dock Dock) Push(imageName string, username string, password string) error {
 	auth := types.AuthConfig{
-		Username: "foxsir",
-		Password: "123456",
+		Username: username,
+		Password: password,
 	}
 	authBytes, _ := json.Marshal(auth)
 	authBase64 := base64.URLEncoding.EncodeToString(authBytes)
-	fmt.Println(authBase64)
 
-	fmt.Println(fmt.Sprintf("%s:latest", imageName))
-
-	pusher, err := dock.cli.ImagePush(dock.ctx, fmt.Sprintf("%s:latest", imageName), types.ImagePushOptions{
+	pusher, err := dock.cli.ImagePush(dock.ctx, fmt.Sprintf("%s", imageName), types.ImagePushOptions{
 		All:           false,
 		RegistryAuth:  authBase64,
 		PrivilegeFunc: nil,
