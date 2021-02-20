@@ -4,8 +4,20 @@ export GOOS=linux
 export GOARCH=amd64
 
 go fmt main.go
-go build main.go
-scp main root@192.168.10.103:/home/services/docker-service
-rm main
+go build -o docker-service main.go
 
-# 123456
+
+dev="-dev"
+
+if [[ $1 = '--prod' ]]
+then
+    dev=""
+fi
+
+build="docker build . -f Dockerfile -t registry.cn-wulanchabu.aliyuncs.com/programschool$dev/docker-service:latest"
+$build
+
+push="docker push registry.cn-wulanchabu.aliyuncs.com/programschool$dev/docker-service:latest"
+$push
+
+rm docker-service
