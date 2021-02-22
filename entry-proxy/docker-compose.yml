@@ -1,8 +1,9 @@
 registry:
   restart: always
-  image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/docker-service:latest
+  image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/entry-proxy:latest
+  container_name: entry-proxy
   ports:
     - 443:443
-  environment:
+  entrypoint: ./entry-proxy
   volumes:
     - /home/ssl:/home/ssl

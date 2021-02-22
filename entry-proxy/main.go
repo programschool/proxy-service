@@ -20,10 +20,10 @@ func main() {
 
 		parseHost := strings.Split(req.Host, ":")
 		info := getFromRedis(parseHost[0])
-		fmt.Println(parseHost[0])
-
+		//fmt.Println(parseHost[0])
 		// 查询子域名获得ip地址
-		fmt.Println(fmt.Sprintf("http://%s:2090", info.container_ip))
+		//fmt.Println(fmt.Sprintf("http://%s:2090", info.container_ip))
+		//fmt.Println(info.docker_server)
 		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.container_ip))
 		return fmt.Sprintf("https://%s", info.docker_server)
 	}

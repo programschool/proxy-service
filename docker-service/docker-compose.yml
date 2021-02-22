@@ -2,7 +2,7 @@ registry:
   restart: always
   image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/docker-service:latest
   ports:
-    - 443:443
-  environment:
+    - 4998:4998
+  entrypoint: ./docker-service
   volumes:
     - /home/ssl:/home/ssl

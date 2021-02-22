@@ -1,6 +1,6 @@
 {
   "host": "0.0.0.0",
-  "port": "443",
+  "port": "2090",
   "certFile": "/home/ssl/boxlayer.com/fullchain.pem",
   "keyFile": "/home/ssl/boxlayer.com/privkey.pem",
   "api": "http://registry.loc:9090",
