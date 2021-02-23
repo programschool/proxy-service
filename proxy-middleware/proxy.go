@@ -226,7 +226,7 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 
 			url, err := url.Parse(GetTarget(c))
 			if err != nil {
-				fmt.Println(err)
+				c.Logger().Print(err)
 			}
 			target := ProxyTarget{URL: url}
 			config.Balancer.AddTarget(&target)

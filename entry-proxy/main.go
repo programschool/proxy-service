@@ -20,18 +20,18 @@ func main() {
 
 		parseHost := strings.Split(req.Host, ":")
 		info := getFromRedis(parseHost[0])
-		//fmt.Println(parseHost[0])
+		//c.Logger().Print(parseHost[0])
 		// 查询子域名获得ip地址
-		//fmt.Println(fmt.Sprintf("http://%s:2090", info.container_ip))
-		//fmt.Println(info.docker_server)
-		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.container_ip))
-		return fmt.Sprintf("https://%s", info.docker_server)
+		c.Logger().Print(fmt.Sprintf("http://%s:2090", info.containerIp))
+		c.Logger().Print(info.dockerServer)
+		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.containerIp))
+		return fmt.Sprintf("https://%s", info.dockerServer)
 	}
 
 	e.Use(proxy_middleware.Proxy(proxy_middleware.NewRoundRobinBalancer()))
 
 	// go p90(e, conf)
-	fmt.Println("Entry Proxy For Node Router")
+	e.Logger.Print("Entry Proxy For Node Router")
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
 }
 
@@ -40,8 +40,8 @@ func p90(e *echo.Echo, conf config.Conf) {
 }
 
 type ContainerInfo struct {
-	container_ip  string
-	docker_server string
+	containerIp  string
+	dockerServer string
 }
 
 func getFromRedis(domain string) ContainerInfo {
@@ -54,8 +54,8 @@ func getFromRedis(domain string) ContainerInfo {
 	})
 
 	var info ContainerInfo
-	info.container_ip = rdb.HGet(ctx, domain, "container_ip").Val()
-	info.docker_server = rdb.HGet(ctx, domain, "docker_server").Val()
+	info.containerIp = rdb.HGet(ctx, domain, "container_ip").Val()
+	info.dockerServer = rdb.HGet(ctx, domain, "docker_server").Val()
 
 	defer rdb.Close()
 	return info

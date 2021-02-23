@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -185,14 +186,14 @@ func saveToRedis(domain string, key string, val string) {
 		DB:       0,  // use default DB
 	})
 
-	//fmt.Println(domain)
-	//fmt.Println(key)
-	//fmt.Println(val)
-
 	err := rdb.HMSet(ctx, domain, key, val)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Error:")
+		log.Println(err)
+		log.Println(domain)
+		log.Println(key)
+		log.Println(val)
 	} else {
 		defer rdb.Close()
 	}
