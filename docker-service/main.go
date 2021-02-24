@@ -89,6 +89,13 @@ func handle(c echo.Context) error {
 			"error": 0,
 			"flag":  flag,
 		}
+	case "status":
+		containerID := post["container-id"].(string)
+		inspect := dock.Inspect(containerID)
+		data = map[string]interface{}{
+			"error":  0,
+			"status": inspect.State.Status,
+		}
 	case "reStart":
 		containerID := post["container-id"].(string)
 		dock.ReStart(containerID)
