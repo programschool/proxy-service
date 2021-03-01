@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
+	"log"
 	"strings"
 )
 
@@ -56,6 +57,9 @@ func getFromRedis(domain string) ContainerInfo {
 	var info ContainerInfo
 	info.containerIp = rdb.HGet(ctx, domain, "container_ip").Val()
 	info.dockerServer = rdb.HGet(ctx, domain, "docker_server").Val()
+
+	log.Print(info.containerIp)
+	log.Print(info.dockerServer)
 
 	defer rdb.Close()
 	return info

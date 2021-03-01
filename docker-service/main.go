@@ -193,15 +193,11 @@ func saveToRedis(domain string, key string, val string) {
 		DB:       0,  // use default DB
 	})
 
-	err := rdb.HMSet(ctx, domain, key, val)
+	rdb.HMSet(ctx, domain, key, val)
 
-	if err != nil {
-		log.Println("Error:")
-		log.Println(err)
-		log.Println(domain)
-		log.Println(key)
-		log.Println(val)
-	} else {
-		defer rdb.Close()
-	}
+	log.Println("Info:")
+	log.Println(domain)
+	log.Println(key)
+	log.Println(val)
+	defer rdb.Close()
 }
