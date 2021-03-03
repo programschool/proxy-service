@@ -3,7 +3,8 @@ registry:
   image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/entry-proxy:latest
   container_name: entry-proxy
   ports:
-    - 443:443
+    - 2090:2090
+    - 80:80
   entrypoint: ./entry-proxy
   volumes:
     - /home/ssl:/home/ssl
