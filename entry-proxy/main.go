@@ -15,29 +15,52 @@ var conf = config.Load()
 
 func main() {
 	e := echo.New()
+	proxy := proxy_middleware.NewProxy{}
 
-	proxy_middleware.GetTarget = func(c echo.Context) string {
+	proxy.GetTarget = func(c echo.Context) string {
+		c.Logger().Print("listen 2090")
 		req := c.Request()
 
 		parseHost := strings.Split(req.Host, ":")
 		info := getFromRedis(parseHost[0])
-		//c.Logger().Print(parseHost[0])
+		c.Logger().Print(parseHost[0])
+		//c.Logger().Print(parseHost[1])
 		// 查询子域名获得ip地址
-		c.Logger().Print(fmt.Sprintf("http://%s:2090", info.containerIp))
+		c.Logger().Print(fmt.Sprintf("container http://%s:2090", info.containerIp))
 		c.Logger().Print(info.dockerServer)
 		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.containerIp))
 		return fmt.Sprintf("https://%s", info.dockerServer)
 	}
 
-	e.Use(proxy_middleware.Proxy(proxy_middleware.NewRoundRobinBalancer()))
+	go listen80()
 
-	// go p90(e, conf)
+	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
 	e.Logger.Print("Entry Proxy For Node Router")
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
 }
 
-func p90(e *echo.Echo, conf config.Conf) {
-	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, "90"), conf.CertFile, conf.KeyFile))
+func listen80() {
+	e := echo.New()
+	proxy := proxy_middleware.NewProxy{}
+
+	proxy.GetTarget = func(c echo.Context) string {
+		c.Logger().Print("listen 80")
+		req := c.Request()
+
+		parseHost := strings.Split(req.Host, ":")
+		info := getFromRedis(parseHost[0])
+		c.Logger().Print(parseHost[0])
+		//c.Logger().Print(parseHost[1])
+		// 查询子域名获得ip地址
+		c.Logger().Print(fmt.Sprintf("container http://%s:80", info.containerIp))
+		c.Logger().Print(info.dockerServer)
+		req.Header.Add("container", fmt.Sprintf("http://%s:80", info.containerIp))
+		return fmt.Sprintf("http://%s", info.dockerServer)
+	}
+
+	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
+	e.Logger.Print("Entry Proxy For Node Preview Router")
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", conf.Host, "80")))
 }
 
 type ContainerInfo struct {

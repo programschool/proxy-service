@@ -7,10 +7,13 @@ import (
 	"github.com/labstack/echo"
 )
 
+var conf = config.Load()
+
 func main() {
 	e := echo.New()
+	proxy := proxy_middleware.NewProxy{}
 
-	proxy_middleware.GetTarget = func(c echo.Context) string {
+	proxy.GetTarget = func(c echo.Context) string {
 		req := c.Request()
 		// res := c.Response()
 		c.Logger().Print(fmt.Sprintf("Proxy: %s", req.Host))
@@ -18,14 +21,27 @@ func main() {
 		return req.Header.Get("container")
 	}
 
-	e.Use(proxy_middleware.Proxy(proxy_middleware.NewRoundRobinBalancer()))
+	go listen80()
 
-	conf := config.Load()
-	// go p90(e, conf)
+	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
 	e.Logger.Print("Middle Proxy For Container Node")
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
 }
 
-func p90(e *echo.Echo, conf config.Conf) {
-	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, "90"), conf.CertFile, conf.KeyFile))
+func listen80() {
+	e := echo.New()
+	proxy := proxy_middleware.NewProxy{}
+
+	proxy.GetTarget = func(c echo.Context) string {
+		req := c.Request()
+		// res := c.Response()
+		c.Logger().Print(fmt.Sprintf("Proxy: %s", req.Host))
+		c.Logger().Print(req.Header.Get("container"))
+		return req.Header.Get("container")
+	}
+
+	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
+
+	e.Logger.Print("Middle Proxy For Container Node")
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", conf.Host, "80")))
 }

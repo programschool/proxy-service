@@ -80,6 +80,10 @@ type (
 		*commonBalancer
 		i uint32
 	}
+
+	NewProxy struct {
+		GetTarget targetType
+	}
 )
 
 var (
@@ -136,7 +140,7 @@ func NewRandomBalancer(targets []*ProxyTarget) ProxyBalancer {
 }
 
 // NewRoundRobinBalancer returns a round-robin proxy balancer.
-func NewRoundRobinBalancer() ProxyBalancer {
+func (NewProxy) NewRoundRobinBalancer() ProxyBalancer {
 	b := &roundRobinBalancer{commonBalancer: new(commonBalancer)}
 	//b.targets = targets
 	return b
@@ -189,19 +193,19 @@ func (b *roundRobinBalancer) Next(c echo.Context) *ProxyTarget {
 // Proxy returns a Proxy middleware.
 //
 // Proxy middleware forwards the request to upstream server using a configured load balancing technique.
-func Proxy(balancer ProxyBalancer) echo.MiddlewareFunc {
-	if GetTarget == nil {
+func (newProxy NewProxy) Proxy(balancer ProxyBalancer) echo.MiddlewareFunc {
+	if newProxy.GetTarget == nil {
 		panic("GetTarget 必须被实现！")
 	}
 
 	c := DefaultProxyConfig
 	c.Balancer = balancer
-	return ProxyWithConfig(c)
+	return newProxy.ProxyWithConfig(c)
 }
 
 // ProxyWithConfig returns a Proxy middleware with config.
 // See: `Proxy()`
-func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
+func (newProxy NewProxy) ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 	// Defaults
 	if config.Skipper == nil {
 		config.Skipper = DefaultProxyConfig.Skipper
@@ -224,7 +228,7 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 			// 可以动态加载 target
 			//url, err := url.Parse("https://192.168.20.101")
 
-			url, err := url.Parse(GetTarget(c))
+			url, err := url.Parse(newProxy.GetTarget(c))
 			if err != nil {
 				c.Logger().Print(err)
 			}
@@ -273,5 +277,3 @@ func ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc {
 
 // 必须实现此接口
 type targetType func(c echo.Context) string
-
-var GetTarget targetType
