@@ -5,5 +5,5 @@
   "certFile": "/home/ssl/boxlayer.com/fullchain.pem",
   "keyFile": "/home/ssl/boxlayer.com/privkey.pem",
   "api": "http://registry.loc:9090",
-  "redisServer": "192.168.10.102:6379"
+  "redisServer": "192.168.50.102:6379"
 }
