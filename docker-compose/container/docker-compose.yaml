@@ -1,6 +1,7 @@
 registry:
   restart: always
   image: registry:2
+  container_name: container-registry
   ports:
     - 5002:5002
   environment:
