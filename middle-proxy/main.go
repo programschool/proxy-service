@@ -16,13 +16,14 @@ func main() {
 	proxy.GetTarget = func(c echo.Context) string {
 		req := c.Request()
 		// res := c.Response()
+		req.Header.Set("Cache-Control", "no-cache, private, max-age=0")
+		req.Header.Set("Pragma", "no-cache")
 		c.Logger().Print(fmt.Sprintf("Proxy: %s", req.Host))
 		c.Logger().Print(req.Header.Get("container"))
 		return req.Header.Get("container")
 	}
 
 	go listen80()
-
 	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
 	e.Logger.Print("Middle Proxy For Container Node")
 	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))

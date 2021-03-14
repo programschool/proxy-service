@@ -138,7 +138,7 @@ func handle(c echo.Context) error {
 		if errCR != nil {
 			c.Logger().Errorf("containerID %s: 删除失败", containerID)
 		}
-		dock.ImageRemove(img.ID)
+		_, _ = dock.ImageRemove(img.ID)
 		data = map[string]interface{}{
 			"error": 0,
 		}

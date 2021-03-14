@@ -28,6 +28,8 @@ func main() {
 		// 查询子域名获得ip地址
 		c.Logger().Print(fmt.Sprintf("container http://%s:2090", info.containerIp))
 		c.Logger().Print(info.dockerServer)
+		req.Header.Set("Cache-Control", "no-cache, private, max-age=0")
+		req.Header.Set("Pragma", "no-cache")
 		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.containerIp))
 		return fmt.Sprintf("https://%s", info.dockerServer)
 	}
