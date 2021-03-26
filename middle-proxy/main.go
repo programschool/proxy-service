@@ -38,6 +38,8 @@ func listen80() {
 		// res := c.Response()
 		c.Logger().Print(fmt.Sprintf("Proxy: %s", req.Host))
 		c.Logger().Print(req.Header.Get("container"))
+		req.Header.Set("Cache-Control", "no-cache, private, max-age=0")
+		req.Header.Set("Pragma", "no-cache")
 		return req.Header.Get("container")
 	}
 

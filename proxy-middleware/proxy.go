@@ -218,9 +218,13 @@ func (newProxy NewProxy) ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
-			if config.Skipper(c) {
-				return next(c)
-			}
+			//if config.Skipper(c) {
+			//	return next(c)
+			//}
+			// 测试删除打印后是否还能生效
+			// 客户端ip
+			fmt.Println(c.RealIP())
+			fmt.Println(config.Skipper(c))
 
 			req := c.Request()
 			res := c.Response()
@@ -232,6 +236,8 @@ func (newProxy NewProxy) ProxyWithConfig(config ProxyConfig) echo.MiddlewareFunc
 			if err != nil {
 				c.Logger().Print(err)
 			}
+			fmt.Println("Proxy To:")
+			fmt.Println(url.Host)
 			target := ProxyTarget{URL: url}
 			config.Balancer.AddTarget(&target)
 			// end
