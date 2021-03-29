@@ -1,0 +1,8 @@
+{
+  "host": "0.0.0.0",
+  "port": "2090",
+  "certFile": "/home/ssl/programschool.cn/fullchain.pem",
+  "keyFile": "/home/ssl/programschool.cn/privkey.pem",
+  "api": "http://registry.loc:9090",
+  "redisServer": "172.27.119.96:6379"
+}

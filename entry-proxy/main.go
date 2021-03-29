@@ -1,70 +1,51 @@
 package main
 
 import (
-	"../config"
-	"../proxy-middleware"
 	"context"
 	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/labstack/echo"
+	"github.com/go-redis/redis/v8"
+	"github.com/programschool/proxy-service/config"
 	"log"
-	"strings"
+	"net"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
 )
 
 var conf = config.Load()
 
 func main() {
-	e := echo.New()
-	proxy := proxy_middleware.NewProxy{}
-
-	proxy.GetTarget = func(c echo.Context) string {
-		c.Logger().Print("listen 2090")
-		req := c.Request()
-
-		parseHost := strings.Split(req.Host, ":")
-		info := getFromRedis(parseHost[0])
-		c.Logger().Print(parseHost[0])
-		//c.Logger().Print(parseHost[1])
-		// 查询子域名获得ip地址
-		c.Logger().Print(fmt.Sprintf("container http://%s:2090", info.containerIp))
-		c.Logger().Print(fmt.Sprintf("Node Server: %s", info.dockerServer))
-		req.Header.Set("Cache-Control", "no-cache, private, max-age=0")
-		req.Header.Set("Pragma", "no-cache")
-		req.Header.Add("container", fmt.Sprintf("http://%s:2090", info.containerIp))
-		return fmt.Sprintf("https://%s", info.dockerServer)
-	}
-
 	go listen80()
 
-	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
-	e.Logger.Print("Entry Proxy For Node Router")
-	e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
+	// e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
+
+	http.HandleFunc("/", Handle())
+	_ = http.ListenAndServeTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile, nil)
 }
 
 func listen80() {
-	e := echo.New()
-	proxy := proxy_middleware.NewProxy{}
+	http.HandleFunc("/", Handle())
+	_ = http.ListenAndServeTLS(fmt.Sprintf("%s:%s", conf.Host, "80"), conf.CertFile, conf.KeyFile, nil)
+}
 
-	proxy.GetTarget = func(c echo.Context) string {
-		c.Logger().Print("listen 80")
-		req := c.Request()
+func Handle() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//log.Println("request:", r.RemoteAddr, "want", r.RequestURI)
+		//Many webservers are configured to not serve pages if a request doesn’t appear from the same host.
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "X-Requested-With")
+		//auth := r.Header.Get("Docker-Auth")
+		//w.Header().Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte(auth)))
 
-		parseHost := strings.Split(req.Host, ":")
-		info := getFromRedis(parseHost[0])
-		c.Logger().Print(parseHost[0])
-		//c.Logger().Print(parseHost[1])
-		// 查询子域名获得ip地址
-		c.Logger().Print(fmt.Sprintf("container http://%s:80", info.containerIp))
-		c.Logger().Print(info.dockerServer)
-		req.Header.Set("Cache-Control", "no-cache, private, max-age=0")
-		req.Header.Set("Pragma", "no-cache")
-		req.Header.Add("container", fmt.Sprintf("http://%s:80", info.containerIp))
-		return fmt.Sprintf("http://%s", info.dockerServer)
+		_, port, _ := net.SplitHostPort(r.Host)
+		p := httputil.NewSingleHostReverseProxy(&url.URL{
+			Scheme: "http",
+			Host:   r.Header.Get("Docker-Ip") + ":" + port,
+		})
+		//log.Printf("respond ip %s", r.Header.Get("Docker-Ip"))
+
+		p.ServeHTTP(w, r)
 	}
-
-	e.Use(proxy.Proxy(proxy.NewRoundRobinBalancer()))
-	e.Logger.Print("Entry Proxy For Node Preview Router")
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%s", conf.Host, "80")))
 }
 
 type ContainerInfo struct {

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"../config"
-	"../library/dockertools"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/labstack/echo"
+	"github.com/go-redis/redis/v8"
+	"github.com/labstack/echo/v4"
+	"github.com/programschool/proxy-service/config"
+	"github.com/programschool/proxy-service/library/dockertools"
 	"log"
 	"net/http"
 	"strings"
@@ -129,6 +129,11 @@ func handle(c echo.Context) error {
 		containerID := post["container-id"].(string)
 		imageName := post["image"].(string)
 		dock.Stop(containerID)
+
+		domain := post["domain"].(string)
+		saveToRedis(domain, "container_ip", "")
+		saveToRedis(domain, "docker_server", "")
+
 		img, _ := dock.Commit(containerID, imageName)
 		errPush := dock.Push(imageName, post["username"].(string), post["password"].(string))
 		if errPush != nil {
