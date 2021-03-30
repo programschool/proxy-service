@@ -1,8 +1,8 @@
 {
   "host": "0.0.0.0",
   "port": "2090",
-  "certFile": "/home/ssl/boxlayer.com/fullchain.pem",
-  "keyFile": "/home/ssl/boxlayer.com/privkey.pem",
+  "certFile": "/home/ssl/programschool.cn/fullchain.pem",
+  "keyFile": "/home/ssl/programschool.cn/privkey.pem",
   "api": "http://registry.loc:9090",
   "redisServer": "192.168.50.102:6379"
 }

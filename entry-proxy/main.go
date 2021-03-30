@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/programschool/proxy-service/config"
@@ -9,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
 )
 
 var conf = config.Load()
@@ -17,34 +17,57 @@ var conf = config.Load()
 func main() {
 	go listen80()
 
-	// e.Logger.Fatal(e.StartTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile))
-
 	http.HandleFunc("/", Handle())
-	_ = http.ListenAndServeTLS(fmt.Sprintf("%s:%s", conf.Host, conf.Port), conf.CertFile, conf.KeyFile, nil)
+	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
+	fmt.Println(fmt.Sprintf("Listen: %s", address))
+	_ = http.ListenAndServeTLS(address, conf.CertFile, conf.KeyFile, nil)
 }
 
 func listen80() {
-	http.HandleFunc("/", Handle())
-	_ = http.ListenAndServeTLS(fmt.Sprintf("%s:%s", conf.Host, "80"), conf.CertFile, conf.KeyFile, nil)
+	address := fmt.Sprintf("%s:%s", conf.Host, "80")
+	fmt.Println(fmt.Sprintf("Listen: %s", address))
+	_ = http.ListenAndServe(address, nil)
 }
 
 func Handle() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//log.Println("request:", r.RemoteAddr, "want", r.RequestURI)
-		//Many webservers are configured to not serve pages if a request doesn’t appear from the same host.
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "X-Requested-With")
-		//auth := r.Header.Get("Docker-Auth")
-		//w.Header().Set("Authorization", "Basic " + base64.StdEncoding.EncodeToString([]byte(auth)))
 
-		_, port, _ := net.SplitHostPort(r.Host)
-		p := httputil.NewSingleHostReverseProxy(&url.URL{
-			Scheme: "http",
-			Host:   r.Header.Get("Docker-Ip") + ":" + port,
-		})
-		//log.Printf("respond ip %s", r.Header.Get("Docker-Ip"))
+		serverPort := "443"
+		scheme := "https"
+		domain, port, err := net.SplitHostPort(r.Host)
+		if err != nil {
+			serverPort = "80"
+			scheme = "http"
+			port = "80"
+			domain = r.Host
+		}
 
-		p.ServeHTTP(w, r)
+		//fmt.Println("scheme")
+		//fmt.Println(scheme)
+		//fmt.Println("serverPort")
+		//fmt.Println(serverPort)
+		//fmt.Println("port")
+		//fmt.Println(port)
+		//fmt.Println(domain)
+
+		info := getFromRedis(domain)
+		//w.Header().Set("Access-Control-Allow-Origin", "*")
+		//w.Header().Set("Access-Control-Allow-Headers", "X-Requested-With")
+
+		director := func(req *http.Request) {
+			req.Header.Add("X-Forwarded-Host", req.Host)
+			req.Header.Set("container", fmt.Sprintf("%s:%s", info.containerIp, port))
+			req.URL.Scheme = scheme
+			req.URL.Host = fmt.Sprintf("%s:%s", info.dockerServer, serverPort)
+		}
+		proxy := &httputil.ReverseProxy{
+			Director: director,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+
+		proxy.ServeHTTP(w, r)
 	}
 }
 
