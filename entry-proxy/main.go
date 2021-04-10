@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/programschool/proxy-service/config"
-	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -20,13 +19,17 @@ func main() {
 	http.HandleFunc("/", Handle())
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
-	_ = http.ListenAndServeTLS(address, conf.CertFile, conf.KeyFile, nil)
+	server := &http.Server{Addr: address}
+	server.SetKeepAlivesEnabled(false)
+	_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
 }
 
 func listen80() {
 	address := fmt.Sprintf("%s:%s", conf.Host, "80")
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
-	_ = http.ListenAndServe(address, nil)
+	server := &http.Server{Addr: address}
+	server.SetKeepAlivesEnabled(false)
+	_ = server.ListenAndServe()
 }
 
 func Handle() func(http.ResponseWriter, *http.Request) {
@@ -88,9 +91,6 @@ func getFromRedis(domain string) ContainerInfo {
 	var info ContainerInfo
 	info.containerIp = rdb.HGet(ctx, domain, "container_ip").Val()
 	info.dockerServer = rdb.HGet(ctx, domain, "docker_server").Val()
-
-	log.Print(info.containerIp)
-	log.Print(info.dockerServer)
 
 	defer rdb.Close()
 	return info

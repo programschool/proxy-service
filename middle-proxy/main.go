@@ -16,13 +16,17 @@ func main() {
 	http.HandleFunc("/", Handle())
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
-	_ = http.ListenAndServeTLS(address, conf.CertFile, conf.KeyFile, nil)
+	server := &http.Server{Addr: address}
+	server.SetKeepAlivesEnabled(false)
+	_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
 }
 
 func listen80() {
 	address := fmt.Sprintf("%s:%s", conf.Host, "80")
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
-	_ = http.ListenAndServe(address, nil)
+	server := &http.Server{Addr: address}
+	server.SetKeepAlivesEnabled(false)
+	_ = server.ListenAndServe()
 }
 
 func Handle() func(http.ResponseWriter, *http.Request) {
