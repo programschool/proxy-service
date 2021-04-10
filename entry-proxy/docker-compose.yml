@@ -1,10 +1,13 @@
-registry:
-  restart: always
-  image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/entry-proxy:latest
-  container_name: entry-proxy
-  ports:
-    - 2090:2090
-    - 80:80
-  entrypoint: ./entry-proxy
-  volumes:
-    - /home/ssl:/home/ssl
+version: "2.4"
+services:
+  app:
+    restart: always
+    image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/entry-proxy:latest
+    container_name: entry-proxy
+    network_mode: bridge
+    ports:
+      - 2090:2090
+      - 80:80
+    entrypoint: ./entry-proxy
+    volumes:
+      - /home/ssl:/home/ssl
