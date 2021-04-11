@@ -1,12 +1,14 @@
-registry:
-  restart: always
-  image: registry:2
-  container_name: container-registry
-  ports:
-    - 5002:5002
-  environment:
-    - REGISTRY_HTTP_ADDR=0.0.0.0:5002
-    - REGISTRY_HTTP_TLS_CERTIFICATE=/home/services/ssl/boxlayer.com/fullchain.pem
-    - REGISTRY_HTTP_TLS_KEY=/home/services/ssl/boxlayer.com/privkey.pem
-  volumes:
-    - /home/services/ssl/boxlayer.com:/home/services/ssl/boxlayer.com
+version: "2.4"
+services:
+  app:
+    restart: always
+    image: registry:2
+    container_name: container-registry
+    ports:
+      - 5002:5002
+    environment:
+      - REGISTRY_HTTP_ADDR=0.0.0.0:5002
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/home/services/ssl/boxlayer.com/fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/home/services/ssl/boxlayer.com/privkey.pem
+    volumes:
+      - /home/services/ssl/boxlayer.com:/home/services/ssl/boxlayer.com

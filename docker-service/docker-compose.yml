@@ -1,9 +1,11 @@
-registry:
-  restart: always
-  image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/docker-service:latest
-  container_name: docker-service
-  ports:
-    - 4998:4998
-  entrypoint: ./docker-service
-  volumes:
-    - /home/ssl:/home/ssl
+version: "2.4"
+services:
+  app:
+    restart: always
+    image: registry.cn-wulanchabu.aliyuncs.com/programschool-dev/docker-service:latest
+    container_name: docker-service
+    ports:
+      - 4998:4998
+    entrypoint: ./docker-service
+    volumes:
+      - /home/ssl:/home/ssl

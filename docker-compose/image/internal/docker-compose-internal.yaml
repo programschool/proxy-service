@@ -1,19 +1,21 @@
-registry:
-  restart: always
-  image: registry:2
-  container_name: image-registry-internal
-  ports:
-    - 5001:5001
-  environment:
-    - REGISTRY_HTTP_ADDR=0.0.0.0:5001
-    - REGISTRY_HTTP_TLS_CERTIFICATE=/home/services/ssl/boxlayer.com/fullchain.pem
-    - REGISTRY_HTTP_TLS_KEY=/home/services/ssl/boxlayer.com/privkey.pem
-    - REGISTRY_STORAGE=oss
-    - REGISTRY_STORAGE_OSS_ACCESSKEYID=LTAIbVsS3cDKjijd
-    - REGISTRY_STORAGE_OSS_ACCESSKEYSECRET=jozjW2GwOgvBR6fCTtg7MmLrISSm3y
-    - REGISTRY_STORAGE_OSS_REGION=oss-cn-wulanchabu
-    - REGISTRY_STORAGE_OSS_BUCKET=boxlayer-hub
-    - REGISTRY_STORAGE_OSS_INTERNAL=true
-    - REGISTRY_STORAGE_OSS_SECURE=false
-  volumes:
-    - /home/services/ssl/boxlayer.com:/home/services/ssl/boxlayer.com
+version: "2.4"
+services:
+  app:
+    restart: always
+    image: registry:2
+    container_name: image-registry-internal
+    ports:
+      - 5001:5001
+    environment:
+      - REGISTRY_HTTP_ADDR=0.0.0.0:5001
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/home/services/ssl/boxlayer.com/fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/home/services/ssl/boxlayer.com/privkey.pem
+      - REGISTRY_STORAGE=oss
+      - REGISTRY_STORAGE_OSS_ACCESSKEYID=LTAIbVsS3cDKjijd
+      - REGISTRY_STORAGE_OSS_ACCESSKEYSECRET=jozjW2GwOgvBR6fCTtg7MmLrISSm3y
+      - REGISTRY_STORAGE_OSS_REGION=oss-cn-wulanchabu
+      - REGISTRY_STORAGE_OSS_BUCKET=boxlayer-hub
+      - REGISTRY_STORAGE_OSS_INTERNAL=true
+      - REGISTRY_STORAGE_OSS_SECURE=false
+    volumes:
+      - /home/services/ssl/boxlayer.com:/home/services/ssl/boxlayer.com
