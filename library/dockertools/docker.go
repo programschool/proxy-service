@@ -1,17 +1,18 @@
 package dockertools
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 )
 
@@ -129,38 +130,38 @@ func (dock Dock) Inspect(containerID string) types.ContainerJSON {
 	return inspect
 }
 
-func (dock Dock) ExecCommand(containerID string, command []string) (types.ContainerExecInspect, error) {
+func (dock Dock) ExecCommand(workingDir string, containerID string, command []string) (types.ContainerExecInspect, string, error) {
 	exec, _ := dock.cli.ContainerExecCreate(dock.ctx, containerID, types.ExecConfig{
 		User:         "root",
-		Privileged:   false,
-		Tty:          true,
+		Privileged:   true,
+		Tty:          false,
 		AttachStdin:  true,
 		AttachStderr: true,
 		AttachStdout: true,
-		Cmd:          strslice.StrSlice(command),
+		Cmd:          command,
+		WorkingDir:   workingDir,
 	})
 
-	err := dock.cli.ContainerExecStart(dock.ctx, exec.ID, types.ExecStartCheck{
-		Detach: true,
-		Tty:    false,
-	})
+	//err := dock.cli.ContainerExecStart(dock.ctx, exec.ID, types.ExecStartCheck{
+	//	Detach: true,
+	//	Tty:    false,
+	//})
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
 
-	if err != nil {
-		panic(err)
+	res, _ := dock.cli.ContainerExecAttach(dock.ctx, exec.ID, types.ExecStartCheck{})
+	bs := bufio.NewScanner(res.Reader)
+
+	var resText []string
+	for k := 0; bs.Scan(); k++ {
+		resText = append(resText, fmt.Sprintf("%s\n", string(bs.Bytes())))
 	}
+	defer res.Close()
 
-	/*
-		res, _ := dock.cli.ContainerExecAttach(dock.ctx, exec.ID, types.ExecStartCheck{})
-
-		bs := bufio.NewScanner(res.Reader)
-
-		for k := 0; bs.Scan(); k++ {
-			fmt.Printf("%s %v\n", bs.Bytes(), bs.Text())
-		}
-	*/
-
-	return dock.cli.ContainerExecInspect(dock.ctx, exec.ID)
-
+	inspect, err := dock.cli.ContainerExecInspect(dock.ctx, exec.ID)
+	return inspect, strings.Join(resText, ""), err
 }
 
 // get all image

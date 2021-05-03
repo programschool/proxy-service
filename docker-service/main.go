@@ -56,7 +56,6 @@ func handle(c echo.Context) error {
 			image,
 			int64(post["memory"].(float64)),
 			post["size"].(string))
-		// dock.ExecCommand(containerID, []string{"bash", "/etc/rc.local"})
 		dockerIP := dock.IpAddress(containerID)
 		// fmt.Println(containerID)
 		// fmt.Println(dockerIP)
@@ -84,7 +83,6 @@ func handle(c echo.Context) error {
 			flag = 1
 		}
 		//fmt.Printf("start docker, id %s, isrun %t\n", containerID, isRun)
-		// dock.ExecCommand(containerID, []string{"bash", "/etc/rc.local"})
 		data = map[string]interface{}{
 			"error": 0,
 			"flag":  flag,
@@ -105,7 +103,6 @@ func handle(c echo.Context) error {
 		server := post["server"].(string)
 		saveToRedis(userDomain, "docker_server", server)
 		saveToRedis(userDomain, "container_id", containerID)
-		// dock.ExecCommand(containerID, []string{"bash", "/etc/rc.local"})
 		data = map[string]interface{}{
 			"error": 0,
 		}
@@ -147,34 +144,30 @@ func handle(c echo.Context) error {
 		data = map[string]interface{}{
 			"error": 0,
 		}
-	case "bash":
+	case "execute":
 		containerID := post["container-id"].(string)
-		command := strings.Split(post["command"].(string), " ")
-		userDomain := post["domain"].(string)
-		bash := []string{"bash"}
-		//fmt.Println("exec bash ", command[0], command[1])
-		if len(command) >= 2 {
-			if strings.TrimSpace(command[0]) == "startOnlineEditor" {
-				saveToRedis(userDomain, "auth", strings.TrimSpace(command[1]))
-			}
-		}
-		inspect, err := dock.ExecCommand(containerID, append(bash, command...))
+		// command is base64 encode string
+		command := strings.Split(
+			fmt.Sprintf("bash run.sh %s", post["command"].(string)), " ",
+		)
+		inspect, resText, err := dock.ExecCommand("/programschool/execute", containerID, command)
 		if err == nil {
 			data = map[string]interface{}{
 				"error":        0,
 				"action":       post["action"],
 				"command":      command,
 				"container-id": inspect.ContainerID,
+				"res":          resText,
 			}
 		} else {
 			data = map[string]interface{}{
-				"error":        1,
+				"error":        err,
 				"action":       post["action"],
 				"command":      command,
 				"container-id": inspect.ContainerID,
+				"res":          resText,
 			}
 		}
-		//fmt.Printf("exec bash finish %v\n", inspect)
 	default:
 		//
 		data = map[string]interface{}{
@@ -184,9 +177,7 @@ func handle(c echo.Context) error {
 	}
 
 	encodeData, _ := json.Marshal(data)
-	c.String(200, string(encodeData))
-
-	return nil
+	return c.String(200, string(encodeData))
 }
 
 func saveToRedis(domain string, key string, val string) {
