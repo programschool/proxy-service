@@ -168,6 +168,30 @@ func handle(c echo.Context) error {
 				"res":          resText,
 			}
 		}
+	case "shell":
+		containerID := post["container-id"].(string)
+		// command is base64 encode string
+		command := strings.Split(
+			fmt.Sprintf("%s", post["shell"].(string)), " ",
+		)
+		inspect, resText, err := dock.ExecCommand("/home", containerID, command)
+		if err == nil {
+			data = map[string]interface{}{
+				"error":        0,
+				"action":       post["action"],
+				"command":      command,
+				"container-id": inspect.ContainerID,
+				"res":          resText,
+			}
+		} else {
+			data = map[string]interface{}{
+				"error":        err,
+				"action":       post["action"],
+				"command":      command,
+				"container-id": inspect.ContainerID,
+				"res":          resText,
+			}
+		}
 	default:
 		//
 		data = map[string]interface{}{
