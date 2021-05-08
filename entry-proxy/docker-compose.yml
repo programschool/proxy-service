@@ -11,3 +11,4 @@ services:
     entrypoint: ./entry-proxy
     volumes:
       - /home/ssl:/home/ssl
+      - /home/logs:/home/logs

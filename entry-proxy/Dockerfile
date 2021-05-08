@@ -5,6 +5,7 @@ RUN ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 COPY entry-proxy /home
 COPY config.json /home
+RUN mkdir /home/logs
 WORKDIR /home
 
 # CMD ["java", "-jar", "backend-0.0.1.jar", "--spring.profiles.active=online"]

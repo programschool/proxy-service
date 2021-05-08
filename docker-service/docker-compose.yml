@@ -9,3 +9,4 @@ services:
     entrypoint: ./docker-service
     volumes:
       - /home/ssl:/home/ssl
+      - /home/logs:/home/logs

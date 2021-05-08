@@ -51,7 +51,7 @@ func (dock Dock) Create(image string, memory int64, size string) string {
 	if err != nil {
 		panic(err)
 	}
-	io.Copy(os.Stdout, reader)
+	_, _ = io.Copy(os.Stdin, reader)
 
 	hostConfig := new(container.HostConfig)
 	hostConfig.Resources.Memory = memory << 20 // 限制内存
@@ -208,7 +208,7 @@ func (dock Dock) Push(imageName string, username string, password string) error 
 		panic(err)
 	}
 	defer pusher.Close()
-	io.Copy(os.Stdout, pusher)
+	_, _ = io.Copy(os.Stdin, pusher)
 	return err
 }
 

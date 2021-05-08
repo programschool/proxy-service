@@ -10,6 +10,7 @@ import (
 	"github.com/programschool/proxy-service/library/dockertools"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -18,12 +19,26 @@ var conf config.Conf
 func main() {
 	// Echo instance
 	e := echo.New()
+
+	initLog(e)
+
 	conf = config.Load()
 	e.POST("/", handle)
 	// Start server
-	fmt.Println("Docker Service API")
+	log.Println("Docker Service API")
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	e.Logger.Fatal(e.StartTLS(address, conf.CertFile, conf.KeyFile))
+}
+
+func initLog(e *echo.Echo) {
+	logFile, err := os.OpenFile("/home/logs/docker-service.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	// 设置存储位置
+	e.Logger.SetOutput(logFile)
+	log.SetOutput(logFile)
 }
 
 func handle(c echo.Context) error {
