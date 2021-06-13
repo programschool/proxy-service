@@ -11,4 +11,4 @@ services:
       - REGISTRY_HTTP_TLS_CERTIFICATE=/home/services/ssl/boxlayer.com/fullchain.pem
       - REGISTRY_HTTP_TLS_KEY=/home/services/ssl/boxlayer.com/privkey.pem
     volumes:
-      - /home/services/ssl/boxlayer.com:/home/services/ssl/boxlayer.com
+      - /home/ssl:/home/ssl
