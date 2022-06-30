@@ -10,5 +10,5 @@ services:
       - 80:80
     entrypoint: ./middle-proxy
     volumes:
-      - /home/ssl:/home/ssl
+      - /home/service/ssl/server:/home/ssl
       - /home/logs:/home/logs

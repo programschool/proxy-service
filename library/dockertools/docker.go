@@ -38,8 +38,10 @@ func (dock Dock) New(host string) Dock {
 func (dock Dock) Create(image string, memory int64, size string) string {
 	// hostConfig docs https://docs.docker.com/engine/api/v1.24/
 	authConfig := types.AuthConfig{
-		Username: "image",
-		Password: "Z29kYWRkeQ==",
+		//Username: "image",
+		//Password: "Z29kYWRkeQ==",
+		Username: "admin",
+		Password: "admin",
 	}
 	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {

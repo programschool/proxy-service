@@ -18,7 +18,8 @@ func main() {
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
 	server := &http.Server{Addr: address}
 	server.SetKeepAlivesEnabled(false)
-	_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
+	//_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
+	_ = server.ListenAndServe()
 }
 
 func listen80() {

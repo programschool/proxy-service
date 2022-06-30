@@ -21,7 +21,8 @@ func main() {
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
 	server := &http.Server{Addr: address}
 	server.SetKeepAlivesEnabled(false)
-	_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
+	//_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
+	_ = server.ListenAndServe()
 }
 
 func listen80() {
@@ -35,8 +36,8 @@ func listen80() {
 func Handle() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		serverPort := "443"
-		scheme := "https"
+		serverPort := "8080"
+		scheme := "http"
 		domain, port, err := net.SplitHostPort(r.Host)
 		if err != nil {
 			serverPort = "80"
