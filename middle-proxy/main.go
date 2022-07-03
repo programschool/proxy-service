@@ -23,7 +23,7 @@ func main() {
 }
 
 func listen80() {
-	address := fmt.Sprintf("%s:%s", conf.Host, "80")
+	address := fmt.Sprintf("%s:%s", conf.Host, "8000")
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
 	server := &http.Server{Addr: address}
 	server.SetKeepAlivesEnabled(false)

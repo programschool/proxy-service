@@ -6,7 +6,7 @@ export GOARCH=amd64
 go fmt main.go
 go build -o entry-proxy main.go
 
-cp conf.d/config-local.json config.json
+cp conf.d/config-online.json config.json
 
 
 build="docker build . -f Dockerfile -t org-apps.programschool.com/entry-proxy:latest"

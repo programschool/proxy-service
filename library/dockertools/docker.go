@@ -40,8 +40,8 @@ func (dock Dock) Create(image string, memory int64, size string) string {
 	authConfig := types.AuthConfig{
 		//Username: "image",
 		//Password: "Z29kYWRkeQ==",
-		Username: "admin",
-		Password: "admin",
+		Username: "image",
+		Password: "$2a$10$krZNIBFQO/NJwYMyBK.uxuymcEfozdVbrvOYGvvClB3tQmtB3Dzhm",
 	}
 	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {

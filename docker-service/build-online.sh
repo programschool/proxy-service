@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cp ./conf.d/config-local.json config.json
+cp ./conf.d/config-online.json config.json
 
 export GOOS=linux
 export GOARCH=amd64

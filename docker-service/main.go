@@ -27,7 +27,8 @@ func main() {
 	// Start server
 	log.Println("Docker Service API")
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
-	e.Logger.Fatal(e.StartTLS(address, conf.CertFile, conf.KeyFile))
+	//e.Logger.Fatal(e.StartTLS(address, conf.CertFile, conf.KeyFile))
+	e.Logger.Fatal(e.Start(address))
 }
 
 func initLog(e *echo.Echo) {

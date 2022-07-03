@@ -26,7 +26,7 @@ func main() {
 }
 
 func listen80() {
-	address := fmt.Sprintf("%s:%s", conf.Host, "80")
+	address := fmt.Sprintf("%s:%s", conf.Host, "8000")
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
 	server := &http.Server{Addr: address}
 	server.SetKeepAlivesEnabled(false)
@@ -40,9 +40,9 @@ func Handle() func(http.ResponseWriter, *http.Request) {
 		scheme := "http"
 		domain, port, err := net.SplitHostPort(r.Host)
 		if err != nil {
-			serverPort = "80"
+			serverPort = "8000"
 			scheme = "http"
-			port = "80"
+			port = "8000"
 			domain = r.Host
 		}
 
