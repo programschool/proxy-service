@@ -6,6 +6,7 @@ import (
 	"github.com/programschool/proxy-service/config"
 	"net/http"
 	"net/http/httputil"
+	"time"
 )
 
 var conf = config.Load()
@@ -16,7 +17,10 @@ func main() {
 	http.HandleFunc("/", Handle())
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
-	server := &http.Server{Addr: address}
+	server := &http.Server{
+		Addr:        address,
+		IdleTimeout: 10 * time.Second,
+	}
 	server.SetKeepAlivesEnabled(false)
 	//_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
 	_ = server.ListenAndServe()
@@ -25,7 +29,10 @@ func main() {
 func listen80() {
 	address := fmt.Sprintf("%s:%s", conf.Host, "8000")
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
-	server := &http.Server{Addr: address}
+	server := &http.Server{
+		Addr:        address,
+		IdleTimeout: 10 * time.Second,
+	}
 	server.SetKeepAlivesEnabled(false)
 	_ = server.ListenAndServe()
 }
