@@ -4,5 +4,5 @@
   "certFile": "/home/ssl/server.crt",
   "keyFile": "/home/ssl/server.key",
   "api": "https://registry.com:5001",
-  "redisServer": "192.168.50.112:6379"
+  "redisServer": "172.27.139.185:6379"
 }

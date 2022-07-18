@@ -18,8 +18,10 @@ func main() {
 	address := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
 	server := &http.Server{
-		Addr:        address,
-		IdleTimeout: 10 * time.Second,
+		Addr: address,
+		//ReadHeaderTimeout: 1 * time.Minute,
+		//IdleTimeout:       1 * time.Minute,
+		//ReadTimeout:       1 * time.Minute,
 	}
 	server.SetKeepAlivesEnabled(false)
 	//_ = server.ListenAndServeTLS(conf.CertFile, conf.KeyFile)
@@ -30,8 +32,10 @@ func listen80() {
 	address := fmt.Sprintf("%s:%s", conf.Host, "8000")
 	fmt.Println(fmt.Sprintf("Listen: %s", address))
 	server := &http.Server{
-		Addr:        address,
-		IdleTimeout: 10 * time.Second,
+		Addr: address,
+		//ReadHeaderTimeout: 1 * time.Minute,
+		//IdleTimeout:       1 * time.Minute,
+		//ReadTimeout:       1 * time.Minute,
 	}
 	server.SetKeepAlivesEnabled(false)
 	_ = server.ListenAndServe()
@@ -54,7 +58,11 @@ func Handle() func(http.ResponseWriter, *http.Request) {
 		proxy := &httputil.ReverseProxy{
 			Director: director,
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+				IdleConnTimeout:       30 * time.Second,
+				MaxIdleConnsPerHost:   32, // seems about optimal, see #2805
+				ResponseHeaderTimeout: 2 * time.Minute,
+				DisableKeepAlives:     true,
 			},
 		}
 
