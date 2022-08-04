@@ -58,7 +58,7 @@ func (dock Dock) Create(image string, memory int64, size string) string {
 	hostConfig := new(container.HostConfig)
 	hostConfig.Resources.Memory = memory << 20 // 限制内存
 	hostConfig.Resources.CPUShares = 256
-	hostConfig.RestartPolicy.Name = "always"
+	hostConfig.RestartPolicy.Name = "on-failure"
 	hostConfig.RestartPolicy.MaximumRetryCount = 10
 	hostConfig.StorageOpt = map[string]string{
 		"size": size, // 限制磁盘 单位 M、G
